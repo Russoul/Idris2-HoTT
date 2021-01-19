@@ -1,0 +1,9 @@
+package hottidris2
+
+opts = "--no-prelude"
+
+modules =
+  HoTT
+
+main = HoTT
+executable = hott

@@ -12,11 +12,10 @@ module HoTT
 --     there is a fixity y such that x < y < z
 --     (and x, y, z are Natural Numbers, which is convenient).
 -- 4)No option to unhide global names.
--- 5)No way to overload natural number literals without depending
---   on Prelude
--- 6)System of numeric literal overloading is flawed:
---    overloading numeric literals works by providing a function of type `Integer -> a`
---    but we have to map all negative integers to zero in this case, to provide a sensible transformation.
+-- 5)System of numeric literal overloading is flawed:
+--    Overloading of numeric literals works by providing a function of type `Integer -> a`.
+--    But to carry this out for naturals
+--     we have to map all negative integers to zero in this case, to provide a sensible transformation.
 
 
 -- The project doesn't depend on the Prelude and other libraries

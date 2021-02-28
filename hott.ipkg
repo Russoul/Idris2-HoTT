@@ -3,7 +3,20 @@ package hottidris2
 opts = "--no-prelude"
 
 modules =
+  Basic,
+  Unit,
+  Void,
+  Sigma,
+  Coproduct,
+  Nat,
+  Path,
+  PreorderReasoning,
+  General,
+  Dec,
+  CoproductProps,
+  NatProps,
   HoTT
 
+sourcedir = "src"
 main = HoTT
 executable = hott

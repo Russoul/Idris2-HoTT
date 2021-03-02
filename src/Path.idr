@@ -51,7 +51,8 @@ H x p f x (Refl x) = f
 
 public export
 transport : (p : a -> Type) -> {x, y : _} -> x == y -> p x -> p y
-transport p i = J (\x, y, _ => p x -> p y) (\_ => id) _ _ i
+-- transport p i = J (\x, y, _ => p x -> p y) (\_ => id) _ _ i
+transport p (Refl x) = id
 
 public export
 IdFun : {a, b: Type} -> a == b -> a -> b
@@ -70,6 +71,8 @@ namespace Id
   (.) : {x, y, z : a} -> x == y -> y == z -> x == z
   p . q = transport (x ==) q p
 
+  --TODO Vertical composition
+
 ||| p <=> p⁻¹
 public export
 sym : {x, y : a} -> (p : x == y) -> y == x
@@ -79,7 +82,8 @@ sym p = transport (== x) p (Refl x)
 ||| p => f(p)
 public export
 ap : {x, y : a} -> (f : a -> b) -> (p : x == y) -> f x == f y
-ap f p = transport (\that => f x == f that) p (Refl (f x))
+-- ap f p = transport (\that => f x == f that) p (Refl (f x))
+ap f (Refl x) = Refl (f x)
 
 |||Dependent map
 public export
@@ -89,5 +93,3 @@ apd : (p : a -> Type)
    -> (path : x == y)
    -> transport p path (f x) == f y
 apd p f x x (Refl x) = Refl (f x)
-
-

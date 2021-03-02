@@ -41,5 +41,5 @@ namespace PreorderReasoningFunction
   public export
   Chain : DeriveF a b -> a -> b
   Chain (|| _) = id
-  Chain (p |=> (_ ... f)) = f . Chain p
+  Chain (p |=> (_ ... f)) = f `compose` Chain p
 

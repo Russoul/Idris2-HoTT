@@ -8,6 +8,7 @@ import Sigma
 import Nat
 import Path
 import PreorderReasoning
+import General
 import Dec
 
 %default total
@@ -157,3 +158,96 @@ Omega2ConcatCommut : (alpha, beta : Omega2 ty a)
                   -> (alpha . beta) == (beta . alpha)
 Omega2ConcatCommut (Refl (Refl a)) (Refl (Refl a)) =
   Refl (Refl (Refl a))
+
+HomotopyReflexive :
+     {p : a -> Type}
+  -> (f : (x : a) -> p x)
+  -> f ~~ f
+HomotopyReflexive hom x = Refl (hom x)
+
+HomotopySymmetric :
+     {p : a -> Type}
+  -> (f, g : (x : a) -> p x)
+  -> f ~~ g
+  -> g ~~ f
+HomotopySymmetric f g hom x = sym (hom x)
+
+||| This is also called horizontal composition.
+HomotopyTransitive :
+     {p : a -> Type}
+  -> (f, g, h : (x : a) -> p x)
+  -> f ~~ g
+  -> g ~~ h
+  -> f ~~ h
+HomotopyTransitive f g h hom hom' x =
+  hom x . hom' x
+
+HomotopyHorCompose :
+     {p : a -> Type}
+  -> (f, g, h : (x : a) -> p x)
+  -> f ~~ g
+  -> g ~~ h
+  -> f ~~ h
+HomotopyHorCompose = HomotopyTransitive
+
+HomotopyVertCompose :
+     (f, g : a -> b)
+  -> (f', g' : b -> c)
+  -> (f ~~ g)
+  -> (f' ~~ g')
+  -> (f . f') ~~ (g . g')
+HomotopyVertCompose f g f' g' alpha beta x with (alpha x)
+  HomotopyVertCompose f g f' g' alpha beta x | ax with (f x)
+   HomotopyVertCompose f g f' g' alpha beta x | ax | fx with (g x)
+    HomotopyVertCompose f g f' g' alpha beta x | Refl _ | fx | fx = beta fx
+
+||| Non-dependent version
+HomotopyNaturalTransformation :
+     (f, g : a -> b)
+  -> (hom : f ~~ g)
+  -> (p : x == y)
+  -> (hom x . ap g p) == (ap f p . hom y)
+HomotopyNaturalTransformation f g hom (Refl x) =
+  sym (ConcatRightNeutral (hom x)) . Refl (hom x) . ConcatLeftNeutral (hom x)
+
+QInv :
+     {a, b : _}
+  -> (f : a -> b)
+  -> Type
+QInv f = Sigma (b -> a) \g => Pair (g . f ~~ id) (f . g ~~ id)
+
+IsEquiv :
+     {a, b : _}
+  -> (f : a -> b)
+  -> Type
+IsEquiv f = Pair (Sigma (b -> a) \g => g . f ~~ id)
+                 (Sigma (b -> a) \g => f . g ~~ id)
+
+Prop1 :
+     (f : a -> b)
+  -> QInv f -> IsEquiv f
+Prop1 f (g # hom # hom') = (g # hom) # (g # hom')
+
+Prop2 :
+     {a, b : _}
+  -> (f : a -> b)
+  -> IsEquiv f -> QInv f
+Prop2 f ((g # alpha) # (h # beta)) =
+  g # alpha # let
+    alpha' = HomotopyVertCompose _ _ _ _ alpha (HomotopyReflexive h)
+    beta' = HomotopyVertCompose _ _ _ _ (HomotopyReflexive g) beta
+    gamma = HomotopyTransitive _ _ _ (HomotopySymmetric _ _ alpha') beta'
+    gamma' = HomotopyVertCompose _ _ _ _ (HomotopyReflexive f) gamma in
+    HomotopyTransitive _ _ _ (HomotopySymmetric _ _ gamma') beta
+
+Prop3 :
+    (f : a -> b)
+ -> (e1, e2 : IsEquiv f)
+ -> e1 == e2
+Prop3 f e1 e2 = ?todo
+
+infix 0 ~=
+
+||| An equivalence from `a` to `b`.
+(~=) : (a : Type) -> (b : Type) -> Type
+a ~= b = Sigma (a -> b) IsEquiv

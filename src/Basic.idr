@@ -19,10 +19,23 @@ const : a -> b -> a
 const x _ = x
 
 infixl 1 .
+infixl 1 `compose`
 
+||| In the stdlib it is the (.) operator.
 public export
-(.) : (b -> c) -> (a -> b) -> a -> c
-(.) f g x = f (g x)
+compose : (b -> c) -> (a -> b) -> a -> c
+compose f g x = f (g x)
+
+||| Instead of going via the stdlib route of naming conventions,
+||| we choose the (.) operator to denote the dependent function
+||| composition. Also note that the order of the operands is reversed.
+public export
+(.) : {p : a -> Type}
+   -> (f : (x : a) -> p x)
+   -> {q : {x : a} -> p x -> Type}
+   -> (g : {x : a} -> (y : p x) -> q {x} y)
+   -> ((x : a) -> q {x} (f x))
+f . g = \x => g (f x)
 
 public export
 domain : {a : Type} -> (a -> b) -> Type

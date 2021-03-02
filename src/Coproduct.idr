@@ -39,5 +39,5 @@ TwoInduction : (p : Two -> Type)
             -> p (Inr ())
             -> (two : Two) -> p two
 TwoInduction p pl pr = SumInduction p
-  (UnitInduction (p . Inl) pl) (UnitInduction (p . Inr) pr)
+  (UnitInduction (p `compose` Inl) pl) (UnitInduction (p `compose` Inr) pr)
 

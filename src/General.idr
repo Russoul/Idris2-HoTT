@@ -20,7 +20,7 @@ infix 0 ~~
 ||| Pointwise equality of functions.
 ||| A homotopy from f to g.
 public export
-(~~) : {x, y : _} -> {p : a -> Type} -> (f, g : (x : a) -> p x) -> Type
+(~~) : {p : a -> Type} -> (f, g : (x : a) -> p x) -> Type
 f ~~ g = (x : a) -> f x == g x
 
 infix 0 /=

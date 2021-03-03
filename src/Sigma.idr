@@ -4,7 +4,7 @@ import Basic
 import Unit
 import Void
 
-infixr 20 #
+infixr 0 #
 public export
 data Sigma : (a : Type) -> (p : a -> Type) -> Type where
   (#) : (x : a) -> p x -> Sigma a p

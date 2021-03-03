@@ -38,29 +38,6 @@ import Dec
 
 -- While sometimes differing naming is introduced as a matter of preference.
 
-
--- TODO Univalent TT
-
-IsCenter : (a : Type) -> a -> Type
-IsCenter a c = (x : a) -> c == x
-
-IsSingleton : Type -> Type
-IsSingleton a = Sigma a (\c => IsCenter a c)
-
-UnitIsSingleton : IsSingleton Unit
-UnitIsSingleton = () # UnitInduction (\x => () == x) (Refl ())
-
-Center : (a : Type) -> IsSingleton a -> a
-Center _ (x # _) = x
-
-Centrality : (a : Type) -> (i : IsSingleton a) -> (x : a) -> Center a i == x
-Centrality _ (_ # phi) = phi
-
-IsSubsingleton : Type -> Type
-IsSubsingleton a = (x, y : a) -> x == y
-
--------------------
-
 LoopSpace : (ty : Type) -> (a : ty) -> Type
 LoopSpace ty a = Id ty a a
 
@@ -159,55 +136,55 @@ Omega2ConcatCommut : (alpha, beta : Omega2 ty a)
 Omega2ConcatCommut (Refl (Refl a)) (Refl (Refl a)) =
   Refl (Refl (Refl a))
 
-HomotopyReflexive :
+HomotopyRefl :
      {p : a -> Type}
   -> (f : (x : a) -> p x)
   -> f ~~ f
-HomotopyReflexive hom x = Refl (hom x)
+HomotopyRefl hom x = Refl (hom x)
 
-HomotopySymmetric :
+HomotopySym :
      {p : a -> Type}
-  -> (f, g : (x : a) -> p x)
+  -> {f, g : (x : a) -> p x}
   -> f ~~ g
   -> g ~~ f
-HomotopySymmetric f g hom x = sym (hom x)
+HomotopySym hom x = sym (hom x)
 
 ||| This is also called horizontal composition.
 HomotopyTransitive :
      {p : a -> Type}
-  -> (f, g, h : (x : a) -> p x)
+  -> {f, g, h : (x : a) -> p x}
   -> f ~~ g
   -> g ~~ h
   -> f ~~ h
-HomotopyTransitive f g h hom hom' x =
-  hom x . hom' x
+HomotopyTransitive alpha beta x =
+  alpha x . beta x
 
 HomotopyHorCompose :
      {p : a -> Type}
-  -> (f, g, h : (x : a) -> p x)
+  -> {f, g, h : (x : a) -> p x}
   -> f ~~ g
   -> g ~~ h
   -> f ~~ h
 HomotopyHorCompose = HomotopyTransitive
 
 HomotopyVertCompose :
-     (f, g : a -> b)
-  -> (f', g' : b -> c)
+     {f, g : a -> b}
+  -> {f', g' : b -> c}
   -> (f ~~ g)
   -> (f' ~~ g')
   -> (f . f') ~~ (g . g')
-HomotopyVertCompose f g f' g' alpha beta x with (alpha x)
-  HomotopyVertCompose f g f' g' alpha beta x | ax with (f x)
-   HomotopyVertCompose f g f' g' alpha beta x | ax | fx with (g x)
-    HomotopyVertCompose f g f' g' alpha beta x | Refl _ | fx | fx = beta fx
+HomotopyVertCompose alpha beta x with (alpha x)
+  HomotopyVertCompose alpha beta x | ax with (f x)
+   HomotopyVertCompose alpha beta x | ax | fx with (g x)
+    HomotopyVertCompose alpha beta x | Refl _ | fx | fx = beta fx
 
 ||| Non-dependent version
 HomotopyNaturalTransformation :
-     (f, g : a -> b)
+     {f, g : a -> b}
   -> (hom : f ~~ g)
   -> (p : x == y)
   -> (hom x . ap g p) == (ap f p . hom y)
-HomotopyNaturalTransformation f g hom (Refl x) =
+HomotopyNaturalTransformation hom (Refl x) =
   sym (ConcatRightNeutral (hom x)) . Refl (hom x) . ConcatLeftNeutral (hom x)
 
 QInv :
@@ -223,22 +200,22 @@ IsEquiv :
 IsEquiv f = Pair (Sigma (b -> a) \g => g . f ~~ id)
                  (Sigma (b -> a) \g => f . g ~~ id)
 
-Prop1 :
-     (f : a -> b)
+QInvIsEquiv :
+     {f : a -> b}
   -> QInv f -> IsEquiv f
-Prop1 f (g # hom # hom') = (g # hom) # (g # hom')
+QInvIsEquiv (g # hom # hom') = (g # hom) # (g # hom')
 
-Prop2 :
+EquivIsQInv :
      {a, b : _}
-  -> (f : a -> b)
+  -> {f : a -> b}
   -> IsEquiv f -> QInv f
-Prop2 f ((g # alpha) # (h # beta)) =
+EquivIsQInv ((g # alpha) # (h # beta)) =
   g # alpha # let
-    alpha' = HomotopyVertCompose _ _ _ _ alpha (HomotopyReflexive h)
-    beta' = HomotopyVertCompose _ _ _ _ (HomotopyReflexive g) beta
-    gamma = HomotopyTransitive _ _ _ (HomotopySymmetric _ _ alpha') beta'
-    gamma' = HomotopyVertCompose _ _ _ _ (HomotopyReflexive f) gamma in
-    HomotopyTransitive _ _ _ (HomotopySymmetric _ _ gamma') beta
+    alpha' = HomotopyVertCompose alpha (HomotopyRefl h)
+    beta' = HomotopyVertCompose (HomotopyRefl g) beta
+    gamma = HomotopyHorCompose (HomotopySym alpha') beta'
+    gamma' = HomotopyVertCompose (HomotopyRefl f) gamma in
+    HomotopyHorCompose (HomotopySym gamma') beta
 
 Prop3 :
     (f : a -> b)
@@ -251,3 +228,64 @@ infix 0 ~=
 ||| An equivalence from `a` to `b`.
 (~=) : (a : Type) -> (b : Type) -> Type
 a ~= b = Sigma (a -> b) IsEquiv
+
+EquivalenceReflexive :
+     (a : Type)
+  -> a ~= a
+EquivalenceReflexive a =
+  id # (id # \x => Refl x) # (id # \x => Refl x)
+
+EquivalenceSymmetric :
+     {a, b : Type}
+  -> a ~= b
+  -> b ~= a
+EquivalenceSymmetric (f # eq) =
+  let (g # a # b) = EquivIsQInv {f} eq in g # QInvIsEquiv (f # b # a)
+                 --              ^--- TODO Unifier should've actually solved that. Report ?
+
+infixr 0 #
+EquivalenceTransitive :
+     {a, b, c : Type}
+  -> a ~= b
+  -> b ~= c
+  -> a ~= c
+EquivalenceTransitive (f # eqf) (g # eqg) =
+  let (f' # a # b) = EquivIsQInv eqf
+      (g' # c # d) = EquivIsQInv {f = g} eqg
+                 --               ^--- TODO same problem
+      alpha = HomotopyVertCompose (HomotopyRefl g') a
+      alpha' = HomotopyVertCompose alpha (HomotopyRefl g)
+      alpha'' = HomotopyHorCompose alpha' c
+      beta = HomotopyVertCompose (HomotopyRefl f) d
+      beta' = HomotopyVertCompose beta (HomotopyRefl f')
+      beta'' = HomotopyHorCompose beta' b in
+      f . g # QInvIsEquiv (g' . f' # alpha'' # beta'')
+
+PairEqElim :
+     {x, y : Pair a b}
+  -> (p : x == y)
+  -> Pair (pr1 x == pr1 y) (pr2 x == pr2 y)
+PairEqElim p = ap pr1 p # ap pr2 p
+
+PairEqIntro :
+     {x, y : Pair a b}
+  -> Pair (pr1 x == pr1 y) (pr2 x == pr2 y)
+  -> x == y
+PairEqIntro {x = e1 # e2, y = e1 # e2} (Refl _ # Refl _) =
+  Refl (e1 # e2)
+
+PairEqQInv : {a, b, x, y : _} -> QInv (PairEqElim {a, b, x, y})
+PairEqQInv = PairEqIntro # fst # snd
+ where
+  fst : {a, b, x, y : _}
+     -> (PairEqIntro {a, b, x, y} . PairEqElim {a, b, x, y})
+     ~~ id {a = Pair (pr1 x == pr1 y) (pr2 x == pr2 y)}
+  fst {x = e1 # e2, y = e1 # e2} (Refl _ # Refl _) = Refl (Refl e1 # Refl e2)
+
+  snd : {a, b, x, y : _}
+     -> (PairEqElim {a, b, x, y} . PairEqIntro {a, b, x, y})
+     ~~ id {a = x == y}
+  snd {x = e1 # e2, y = e1 # e2} (Refl _) = Refl (Refl (e1 # e2))
+
+PairEqIsEquiv : {a, b, x, y : _} -> IsEquiv (PairEqElim {a, b, x, y})
+PairEqIsEquiv = QInvIsEquiv PairEqQInv

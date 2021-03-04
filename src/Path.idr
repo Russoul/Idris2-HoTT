@@ -49,6 +49,8 @@ H x p f x (Refl x) = f
 -- noContradiction : x === y -> ...
 -- noContradiction Refl = ...
 
+||| Lift a point in the base space `a` to the point in the total
+||| space `Sigma a p` via the given path in the base space.
 public export
 transport : (p : a -> Type) -> {x, y : _} -> x == y -> p x -> p y
 -- transport p i = J (\x, y, _ => p x -> p y) (\_ => id) _ _ i

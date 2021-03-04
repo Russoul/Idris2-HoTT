@@ -48,4 +48,3 @@ codomain _ = b
 public export
 typeOf : {a : Type} -> a -> Type
 typeOf _ = a
-

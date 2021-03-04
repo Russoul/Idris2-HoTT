@@ -15,14 +15,6 @@ public export
 (<=>) : Type -> Type -> Type
 a <=> b = Pair (a -> b) (b -> a)
 
-infix 0 ~~
-
-||| Pointwise equality of functions.
-||| A homotopy from f to g.
-public export
-(~~) : {p : a -> Type} -> (f, g : (x : a) -> p x) -> Type
-f ~~ g = (x : a) -> f x == g x
-
 infix 0 /=
 
 public export

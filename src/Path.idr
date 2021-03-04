@@ -78,14 +78,14 @@ public export
 sym : {x, y : a} -> (p : x == y) -> y == x
 sym p = transport (== x) p (Refl x)
 
-||| Congurence or f(p) in the HoTT book
+||| Congruence or f(p)/(ap f p) in the HoTT book
 ||| p => f(p)
 public export
 ap : {x, y : a} -> (f : a -> b) -> (p : x == y) -> f x == f y
 -- ap f p = transport (\that => f x == f that) p (Refl (f x))
 ap f (Refl x) = Refl (f x)
 
-|||Dependent map
+||| Dependent map
 public export
 apd : (p : a -> Type)
    -> (f : (x : a) -> p x)

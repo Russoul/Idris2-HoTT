@@ -217,12 +217,6 @@ EquivIsQInv ((g # alpha) # (h # beta)) =
     gamma' = HomotopyVertCompose (HomotopyRefl f) gamma in
     HomotopyHorCompose (HomotopySym gamma') beta
 
-Prop3 :
-    (f : a -> b)
- -> (e1, e2 : IsEquiv f)
- -> e1 == e2
-Prop3 f e1 e2 = ?todo
-
 infix 0 ~=
 
 ||| An equivalence from `a` to `b`.
@@ -289,3 +283,128 @@ PairEqQInv = PairEqIntro # fst # snd
 
 PairEqIsEquiv : {a, b, x, y : _} -> IsEquiv (PairEqElim {a, b, x, y})
 PairEqIsEquiv = QInvIsEquiv PairEqQInv
+
+PairUniqueness :
+     (x : Pair a b)
+  -> x == (pr1 {p = const b} x # pr2 {p = const b} x)
+  -- TODO pretty strange why I had to manually specify the `p`.
+PairUniqueness x =
+  PairEqIntro {x} {y = pr1 x # pr2 x} (Refl (pr1 x) # Refl (pr2 x))
+
+
+||| Product of type families.
+namespace Family
+  public export
+  Cross :
+       (a, b : ty -> Type)
+    -> ty
+    -> Type
+  Cross a b x = Pair (a x) (b x)
+
+TransportPair :
+     {x, y : ty}
+  -> {a, b : ty -> Type}
+  -> (p : Id ty x y)
+  -> (c : Pair (a x) (b x))
+  -> transport (Cross a b) p c == (transport a p (pr1 c) # transport b p (pr2 c))
+TransportPair (Refl x) c = PairUniqueness c
+
+||| Product of functions.
+namespace Function
+  public export
+  Cross :
+       (f : a -> a')
+    -> (g : b -> b')
+    -> Pair a b -> Pair a' b'
+  Cross f g x = f (pr1 x) # g (pr2 x)
+
+ApFunctorialUnderPairEqLemma :
+     (f : a -> a')
+  -> (g : b -> b')
+  -> (x, y : Pair a b)
+  -> (p : pr1 x == pr1 y)
+  -> (q : pr2 x == pr2 y)
+  -> ap (Cross f g) (PairEqIntro {x, y} (p # q))
+               --                 ^--^---TODO strange unification problems again
+  == PairEqIntro (ap f p # ap g q)
+ApFunctorialUnderPairEqLemma f g (a # b) (a # b) (Refl _) (Refl _) =
+  Refl (Refl (f a # g b))
+
+SigmaEqElim :
+     {p : a -> Type}
+  -> {w, w' : Sigma a p}
+  -> (w == w')
+  -> Sigma (pr1 w == pr1 w')
+           (\path => transport p path (pr2 w) == pr2 w')
+SigmaEqElim (Refl w) = Refl (pr1 w) # Refl (pr2 w)
+
+SigmaEqIntro :
+     {p : a -> Type}
+  -> {w, w' : Sigma a p}
+  -> Sigma (pr1 w == pr1 w')
+           (\path => transport p path (pr2 w) == pr2 w')
+  -> (w == w')
+SigmaEqIntro {w = a # b, w' = a' # b'} sigma =
+  SigmaInduction (\_ => Id (Sigma _ p) (a # b) (a' # b'))
+    (\(Refl a) => \(Refl b) => Refl (a # b)) sigma
+
+SigmaEqQInv :
+     {p : a -> Type}
+  -> {w, w' : Sigma a p}
+  -> QInv (SigmaEqElim {p, w, w'})
+SigmaEqQInv {w = a # b, w' = a' # b'} =
+  SigmaEqIntro # (\(Refl _ # Refl _) => Refl (Refl a # Refl b))
+               # (\(Refl (a # b)) => Refl (Refl (a # b)))
+
+SigmaEqIsEquiv :
+     {p : a -> Type}
+  -> {w, w' : Sigma a p}
+  -> IsEquiv (SigmaEqElim {p, w, w'})
+SigmaEqIsEquiv =
+  QInvIsEquiv {f = SigmaEqElim {p, w, w'}}
+              (SigmaEqQInv {p, w, w'})
+
+SigmaUniqueness :
+     {p : a -> Type}
+  -> (z : Sigma a p)
+  -> z == (pr1 z # pr2 z)
+SigmaUniqueness z =
+  SigmaEqIntro {w = z, w' = pr1 z # pr2 z} (Refl (pr1 z) # Refl (pr2 z))
+
+UnitEqElim :
+     {x, y : Unit}
+  -> (x == y)
+  -> Unit
+UnitEqElim _ = MkUnit
+
+UnitEqIntro :
+     {x, y : Unit}
+  -> Unit
+  -> (x == y)
+UnitEqIntro {x = MkUnit, y = MkUnit} _ = Refl MkUnit
+
+UnitEqQInv : {x, y : Unit} -> QInv (UnitEqElim {x, y})
+UnitEqQInv = UnitEqIntro
+           # (\MkUnit => Refl MkUnit)
+           # (\(Refl MkUnit) => Refl (Refl MkUnit))
+
+UnitEqIsEquiv : {x, y : Unit} -> IsEquiv (UnitEqElim {x, y})
+UnitEqIsEquiv = QInvIsEquiv {f = UnitEqElim} (UnitEqQInv {x, y})
+
+UnitUniqueness : (z : Unit) -> z == MkUnit
+UnitUniqueness z = UnitEqIntro {x = z, y = MkUnit} MkUnit
+
+EquivUniqueness :
+    (f : a -> b)
+ -> (e1, e2 : IsEquiv f)
+ -> e1 == e2
+-- e : g . f ~~ id
+-- q : h . f ~~ id
+
+-- e' : f . g' ~~ id
+-- q' : f . h' ~~ id
+
+-- ? :
+EquivUniqueness f ((g # e) # (g' # e')) ((h # q) # (h' # q')) =
+  PairEqIntro (?a # ?b)
+

@@ -40,8 +40,8 @@ import Dec
 -- While sometimes differing naming is introduced as a matter of preference.
 
 ||| A type together with a point, called its basepoint.
-PointedType : (ty : Type) -> Type
-PointedType ty = Pair Type ty
+PointedType : Type
+PointedType = Sigma Type id
 
 ||| A pointed type of paths from a point to itself, a.k.a loops,
 ||| with the basepoint set to reflexivity.
